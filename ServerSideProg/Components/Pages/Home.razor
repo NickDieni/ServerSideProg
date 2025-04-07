@@ -1,0 +1,44 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.Identity
+
+@inject IServiceProvider _serviceProvider
+@inject UserManager<Data.ApplicationUser> _userManager;
+
+<PageTitle>Home</PageTitle>
+
+
+<AuthorizeView>
+    <Authorized>
+        <h1>Du ER logget ind.</h1>
+
+    </Authorized>
+    <NotAuthorized>
+        <h1>Du er IKKE logget ind.</h1>
+
+    </NotAuthorized>
+    <Authorized>
+        <h1>Du ER Admin</h1>
+
+    </Authorized>
+</AuthorizeView>
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        // await CreateUserRoleAsync("NAD@mail.dk", "Admin");
+    }
+
+    // private async Task CreateUserRoleAsync(string user,  string role)
+    // {
+    //     var roleManager = _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    //     var userRoleCheck = await roleManager.RoleExistsAsync(role);
+    //     if(!userRoleCheck)
+    //         await roleManager.CreateAsync(new IdentityRole(role));
+
+    //     Data.ApplicationUser identityUser = await _userManager.FindByNameAsync(user);
+    //     await _userManager.AddToRoleAsync(identityUser, role);
+    // }
+
+}

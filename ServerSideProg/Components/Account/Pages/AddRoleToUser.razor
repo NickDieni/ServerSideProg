@@ -1,0 +1,73 @@
+﻿@page "/Account/AddRoleToUser"
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+
+@inject IServiceProvider _serviceProvider
+@inject UserManager<Data.ApplicationUser> _userManager
+
+<div class="Row">
+    <div class="col-lg-6">
+        <EditForm Model="@Input" OnValidSubmit="HandleValidSubmit" FormName="AddRoleToUserForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" class="form-control" @bind-Value="Input.Email" />
+            </div>
+
+            <div class="form-group">
+                <label for="roleName">Role Name</label>
+                <InputText id="roleName" class="form-control" @bind-Value="Input.RoleName" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // await CreateUserRoleAsync("NAD@mail.dk", "Admin");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (string.IsNullOrEmpty(Input.Username))
+        {
+            // Handle the error, e.g., show a message to the user
+            Console.WriteLine("Username is null or empty.");
+            return;
+        }
+        if (string.IsNullOrEmpty(Input.RoleName))
+        {
+            Console.WriteLine("RoleName is empty");
+            return;
+        }
+
+        Console.WriteLine($"Username: {Input.Username}, RoleName: {Input.RoleName}");
+        await CreateUserRoleAsync(Input.Username, Input.RoleName);
+    }
+
+    private async Task CreateUserRoleAsync(string user, string role)
+    {
+        var roleManager = _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        var userRoleCheck = await roleManager.RoleExistsAsync(role);
+        if (!userRoleCheck)
+            await roleManager.CreateAsync(new IdentityRole(role));
+
+        Data.ApplicationUser identityUser = await _userManager.FindByNameAsync(user);
+        await _userManager.AddToRoleAsync(identityUser, role);
+    }
+
+    public class InputModel
+    {
+        public string Email { get; set; }
+        public string RoleName { get; set; }
+    }
+}
