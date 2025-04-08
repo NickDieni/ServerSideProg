@@ -2,24 +2,28 @@
 
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
 
 @inject IServiceProvider _serviceProvider
 @inject UserManager<Data.ApplicationUser> _userManager
 
 <div class="Row">
     <div class="col-lg-6">
-        <EditForm Model="@Input" OnValidSubmit="HandleValidSubmit" FormName="AddRoleToUserForm">
+        <h1>Add Role to User</h1>
+        <EditForm Model="@Input" OnValidSubmit="HandleValidSubmit" FormName="AddRoleToUserForm" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="email">Email</label>
                 <InputText id="email" class="form-control" @bind-Value="Input.Email" />
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="roleName">Role Name</label>
                 <InputText id="roleName" class="form-control" @bind-Value="Input.RoleName" />
+                <ValidationMessage For="() => Input.RoleName" class="text-danger" />
             </div>
 
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -28,6 +32,7 @@
 </div>
 
 @code {
+    [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
@@ -37,10 +42,10 @@
 
     private async Task HandleValidSubmit()
     {
-        if (string.IsNullOrEmpty(Input.Username))
+        if (string.IsNullOrEmpty(Input.Email))
         {
             // Handle the error, e.g., show a message to the user
-            Console.WriteLine("Username is null or empty.");
+            Console.WriteLine("Email is null or empty.");
             return;
         }
         if (string.IsNullOrEmpty(Input.RoleName))
@@ -49,8 +54,8 @@
             return;
         }
 
-        Console.WriteLine($"Username: {Input.Username}, RoleName: {Input.RoleName}");
-        await CreateUserRoleAsync(Input.Username, Input.RoleName);
+        Console.WriteLine($"Email: {Input.Email}, RoleName: {Input.RoleName}");
+        await CreateUserRoleAsync(Input.Email, Input.RoleName);
     }
 
     private async Task CreateUserRoleAsync(string user, string role)
@@ -67,7 +72,11 @@
 
     public class InputModel
     {
-        public string Email { get; set; }
-        public string RoleName { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        public string RoleName { get; set; } = "";
     }
 }
