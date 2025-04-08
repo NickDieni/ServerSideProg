@@ -1,0 +1,1 @@
+docker run -p 8000:8080 -p 8001:8081 -v %USERPROFILE%\.aspnet\https:/https/ -e ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS="https://+:8081;http://+:8080" -e ASPNETCORE_Kestrel__Certificates__Default__Password="Nick@1" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/Nick.pfx blazorwebapp1:v1

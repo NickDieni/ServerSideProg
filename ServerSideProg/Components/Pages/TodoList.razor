@@ -1,0 +1,10 @@
+﻿@page "/todolist"
+
+<h3>TodoList</h3>
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Policy = "AuthenticatedUser")]
+
+@code {
+
+}

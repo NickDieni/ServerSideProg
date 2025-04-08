@@ -25,8 +25,14 @@ builder.Services.AddAuthentication(options =>
 
 
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnectionSqlite") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<ApplicationDbContext>(options => 
+    options.UseSqlite(connectionString));
+
+//var connectionString2 = builder.Configuration.GetConnectionString("TodoConnectionSqlite") ?? throw new InvalidOperationException("Connection string 'DefaultConnection2' not found.");
+//builder.Services.AddDbContext<TodoContext>(options => 
+//    options.UseSqlServer(connectionString2));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -47,6 +53,10 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 builder.Services.AddAuthorization(option =>
 {
+    option.AddPolicy("AuthenticatedUser", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
     option.AddPolicy("RequireAdministartorRole", policy =>
     {
         policy.RequireRole("Admin");
