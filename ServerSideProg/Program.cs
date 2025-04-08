@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ServerSideProg.Components;
 using ServerSideProg.Components.Account;
 using ServerSideProg.Data;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,22 @@ builder.Services.AddAuthorization(option =>
     });
 });
 
+
+
+builder.WebHost.UseKestrel(options =>
+    {
+        options.Configure(builder.Configuration.GetSection("Kestrel"))
+        .Endpoint("HTTPS", https =>
+        {
+            https.HttpsOptions.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
+        });
+    });
+
+//builder.WebHost.ConfigureKestrel((context, serverOptions) =>
+//{
+//    serverOptions.Listen(IPAddress.Loopback, 7000);
+
+//});
 
 var app = builder.Build();
 
