@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ServerSideProg.Components;
 using ServerSideProg.Components.Account;
 using ServerSideProg.Data;
+using ServerSideProg.Models;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,9 @@ builder.Services.AddAuthentication(options =>
 
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var todoConnection = builder.Configuration.GetConnectionString("Todoconnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<TodoDbContext>(options => options.UseSqlServer(todoConnection));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

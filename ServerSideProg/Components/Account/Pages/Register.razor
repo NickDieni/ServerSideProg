@@ -5,10 +5,12 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.EntityFrameworkCore
 @using ServerSideProg.Data
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
+@inject RoleManager<IdentityRole> RoleManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject ILogger<Register> Logger
@@ -42,6 +44,18 @@
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
+            <div class="form-floating mb-3">
+                <InputSelect @bind-Value="Input.SelectedRoleId" class="form-control">
+                    <option value="">Select a role</option>
+                    @foreach (var role in Roles)
+                    {
+                        <option value="@role.Id">@role.Name</option>
+                    }
+                </InputSelect>
+                <label for="Input.SelectedRoleId">Role</label>
+            </div>
+
+
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
@@ -63,6 +77,14 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    private List<IdentityRole> Roles { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch available roles from the RoleManager
+        Roles = await RoleManager.Roles.ToListAsync();
+    }
+
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     public async Task RegisterUser(EditContext editContext)
@@ -80,8 +102,15 @@
             identityErrors = result.Errors;
             return;
         }
+        Console.WriteLine($"Input: {Input is null} | Id {string.IsNullOrEmpty(Input.SelectedRoleId)}");
+        // Assign the selected role to the user
+        var role = await RoleManager.FindByIdAsync(Input.SelectedRoleId);
+        if (role != null)
+        {
+            await UserManager.AddToRoleAsync(user, role.Name);
+        }
 
-        Logger.LogInformation("User created a new account with password.");
+        Logger.LogInformation("User created a new account with password and role: {Role}", role?.Name);
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -125,22 +154,43 @@
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 
-    private sealed class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = "";
+private sealed class InputModel
+{
+    [Required]
+    [EmailAddress]
+    [Display(Name = "Email")]
+    public string Email { get; set; } = "";
 
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 8)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = "";
+    [Required]
+    [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 8)]
+    [DataType(DataType.Password)]
+    [Display(Name = "Password")]
+    public string Password { get; set; } = "";
 
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
-    }
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirm password")]
+    [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+    public string ConfirmPassword { get; set; } = "";
+
+    
+    [Display(Name = "Role")]
+    public string SelectedRoleId { get; set; } = ""; // Store the selected role's ID
+}
+
+    // public class InputModel
+    // {
+    //     [Required]
+    //     [EmailAddress]
+    //     public string Email { get; set; } = "";
+
+    //     [Required]
+    //     [StringLength(100, MinimumLength = 8)]
+    //     public string Password { get; set; } = "";
+
+    //     [Compare("Password", ErrorMessage = "Passwords do not match.")]
+    //     public string ConfirmPassword { get; set; } = "";
+
+    //     [Required(ErrorMessage = "Please select a role.")]
+    //     public string SelectedRoleId { get; set; } = ""; // Store the selected role's ID
+    // }
 }

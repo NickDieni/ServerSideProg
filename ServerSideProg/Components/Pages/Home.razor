@@ -2,6 +2,8 @@
 
 @using Microsoft.AspNetCore.Identity
 
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
+@inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
 @inject IServiceProvider _serviceProvider
 @inject UserManager<Data.ApplicationUser> _userManager;
 
@@ -24,21 +26,24 @@
 </AuthorizeView>
 
 @code{
+    private bool _isAuthenticated;
+
+
+
     protected override async Task OnInitializedAsync()
     {
-        // await CreateUserRoleAsync("NAD@mail.dk", "Admin");
+
+
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            _navigationManager.NavigateTo("/cprnr");
+        }
     }
+    
 
-    // private async Task CreateUserRoleAsync(string user,  string role)
-    // {
-    //     var roleManager = _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    //     var userRoleCheck = await roleManager.RoleExistsAsync(role);
-    //     if(!userRoleCheck)
-    //         await roleManager.CreateAsync(new IdentityRole(role));
-
-    //     Data.ApplicationUser identityUser = await _userManager.FindByNameAsync(user);
-    //     await _userManager.AddToRoleAsync(identityUser, role);
-    // }
 
 }

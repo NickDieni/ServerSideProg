@@ -1,0 +1,82 @@
+﻿@page "/cprnr"
+
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject ServerSideProg.Models.TodoDbContext TodoContext
+
+<h3>Enter Your CPR Number</h3>
+
+@if (!string.IsNullOrEmpty(_userName))
+{
+    <p><strong>Username/Email:</strong> @_userName</p>
+}
+
+<div class="form-group">
+    <label for="cprInput">CPR Number</label>
+    <EditForm Model="this" OnValidSubmit="SubmitCprNumber">
+        <InputText id="cprInput" class="form-control" @bind-Value="CprNumber" placeholder="Enter your CPR number" />
+    </EditForm>
+</div>
+
+<button class="btn btn-primary mt-2" @onclick="SubmitCprNumber">Submit</button>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p class="text-success">@Message</p>
+}
+
+@code {
+    private string? _userName;
+    private string CprNumber { get; set; } = string.Empty;
+    private string? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _userName = user.Identity?.Name;
+    }
+
+    private async Task SubmitCprNumber()
+    {
+        if (string.IsNullOrEmpty(CprNumber))
+        {
+            Message = "CPR number cannot be empty.";
+            return;
+        }
+
+        try
+        {
+            // Hash the CPR number using BCrypt
+            Codes.HashingHandler hashingHandler = new();
+            string hashedCpr = hashingHandler.BCryptHashing(CprNumber);
+
+            // Save the hashed CPR number to the database
+            var cprEntry = new TodoCprEntry
+                {
+                    UserName = _userName,
+                    HashedCpr = hashedCpr,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+            TodoContext.Add(cprEntry);
+            await TodoContext.SaveChangesAsync();
+
+            Message = "CPR number saved successfully!";
+            CprNumber = string.Empty; // Clear the input field
+        }
+        catch (Exception ex)
+        {
+            Message = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    // Model for the CPR entry
+    public class TodoCprEntry
+    {
+        public int Id { get; set; }
+        public string? UserName { get; set; }
+        public string HashedCpr { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+}
