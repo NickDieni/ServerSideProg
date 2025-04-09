@@ -53,8 +53,12 @@ builder.Services.AddAuthorization(option =>
         policy.RequireRole("Admin");
     });
 });
+//.Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+string kestrelCertUrl = builder.Configuration.GetValue<string>("KestrelCertUrl").Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+string kestrelCertKey = builder.Configuration.GetValue<string>("KestrelCertKey").Replace("%USERPROFILE%", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
-
+builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value = kestrelCertUrl;
+builder.Configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Password").Value = kestrelCertKey;
 
 builder.WebHost.UseKestrel(options =>
     {
