@@ -27,7 +27,7 @@ public class HashingHandler
         BCrypt.Net.BCrypt.HashPassword(valueToHash, BCrypt.Net.BCrypt.GenerateSalt(), true, BCrypt.Net.HashType.SHA256);
 
     public bool BCryptVerifyHashing2(string valueToHash, string hashedValue) =>
-        BCrypt.Net.BCrypt.Verify(valueToHash, hashedValue, true);
+        BCrypt.Net.BCrypt.Verify(valueToHash, hashedValue, true, BCrypt.Net.HashType.SHA256);
 
     #endregion
 

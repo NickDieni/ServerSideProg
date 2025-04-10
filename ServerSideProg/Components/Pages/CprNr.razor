@@ -12,7 +12,7 @@
 
 @if (!string.IsNullOrEmpty(_userName))
 {
-    <p><strong>Username/Email:</strong> @_userName</p>
+    <p><strong>Username/Email:</strong> @_userName (@_userRoles)</p>
 }
 
 @if (HasCprNumber)
@@ -44,12 +44,21 @@ else
     private string? Message { get; set; }
     private bool HasCprNumber { get; set; } = false;
     private string? StoredHashedCpr { get; set; }
+    private string? _userRoles;
+
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _userName = user.Identity?.Name;
+
+        List<string> roles = user.Claims
+            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        _userRoles = string.Join(", ", roles);
 
         // Check if the user already has a CPR number in the database
         var existingCpr = await TodoContext.Cprs.FirstOrDefaultAsync(c => c.User == _userName);
@@ -58,6 +67,8 @@ else
             HasCprNumber = true;
             StoredHashedCpr = existingCpr.CprNr;
         }
+
+
     }
 
     private async Task SubmitCprNumber()
