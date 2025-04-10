@@ -1,7 +1,8 @@
 ﻿@page "/"
 
 @using Microsoft.AspNetCore.Identity
-
+@inject Codes.SymmetriskEncryptionHandler symmetriskEncryptionHandler
+@inject Codes.AsymmetriskEncryption asymmetriskEncryption
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
 @inject IServiceProvider _serviceProvider
@@ -32,7 +33,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // string SymvalueToEncrypt = "Hello World!";
+        // string encryptedValue = symmetriskEncryptionHandler.Encrypt(SymvalueToEncrypt);
+        // string decryptedValue = symmetriskEncryptionHandler.Decrypt(encryptedValue);
 
+        string AsymvalueToEncrypt = "Hello World!";
+        string AsymencryptedValue = asymmetriskEncryption.EncryptAsymetrisk(AsymvalueToEncrypt);
+        string AsymdecryptedValue = asymmetriskEncryption.DecryptAsymetrisk(AsymencryptedValue);
 
 
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
@@ -40,7 +47,7 @@
 
         if (user.Identity.IsAuthenticated)
         {
-            _navigationManager.NavigateTo("/cprnr");
+            _navigationManager.NavigateTo("/CprNr");
         }
     }
     

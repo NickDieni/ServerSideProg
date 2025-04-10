@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ServerSideProg.Codes;
 using ServerSideProg.Components;
 using ServerSideProg.Components.Account;
 using ServerSideProg.Data;
@@ -17,6 +18,9 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<SymmetriskEncryptionHandler>();
+builder.Services.AddScoped<HashingHandler>();
+builder.Services.AddScoped<AsymmetriskEncryption>();
 
 builder.Services.AddAuthentication(options =>
     {
