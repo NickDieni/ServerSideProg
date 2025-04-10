@@ -1,0 +1,6 @@
+@ServerSideProgAPI_HostAddress = http://localhost:5032
+
+GET {{ServerSideProgAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

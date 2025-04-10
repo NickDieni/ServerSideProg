@@ -1,12 +1,16 @@
 ﻿@page "/"
 
 @using Microsoft.AspNetCore.Identity
+@using ServerSideProg.Components.Account
 @inject Codes.SymmetriskEncryptionHandler symmetriskEncryptionHandler
 @inject Codes.AsymmetriskEncryption asymmetriskEncryption
-@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
-@inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
 @inject IServiceProvider _serviceProvider
 @inject UserManager<Data.ApplicationUser> _userManager;
+@inject IdentityRedirectManager _redirectManager;
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
 
 <PageTitle>Home</PageTitle>
 
@@ -37,9 +41,9 @@
         // string encryptedValue = symmetriskEncryptionHandler.Encrypt(SymvalueToEncrypt);
         // string decryptedValue = symmetriskEncryptionHandler.Decrypt(encryptedValue);
 
-        string AsymvalueToEncrypt = "Hello World!";
-        string AsymencryptedValue = asymmetriskEncryption.EncryptAsymetrisk(AsymvalueToEncrypt);
-        string AsymdecryptedValue = asymmetriskEncryption.DecryptAsymetrisk(AsymencryptedValue);
+        // string AsymvalueToEncrypt = "Hello World!";
+        // string AsymencryptedValue = asymmetriskEncryption.EncryptAsymetrisk(AsymvalueToEncrypt);
+        // string AsymdecryptedValue = asymmetriskEncryption.DecryptAsymetrisk(AsymencryptedValue);
 
 
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
@@ -47,6 +51,7 @@
 
         if (user.Identity.IsAuthenticated)
         {
+            await Task.Delay(300);
             _navigationManager.NavigateTo("/CprNr");
         }
     }

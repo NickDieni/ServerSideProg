@@ -3,12 +3,25 @@
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navigationManager
 @inject ServerSideProg.Models.TodoDbContext TodoContext
+@using Microsoft.EntityFrameworkCore
+@using ServerSideProg.Models
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "AuthenticatedUser")]
 
 <h3>Enter Your CPR Number</h3>
 
 @if (!string.IsNullOrEmpty(_userName))
 {
     <p><strong>Username/Email:</strong> @_userName</p>
+}
+
+@if (HasCprNumber)
+{
+    <p>You already have a CPR number registered. Please confirm your CPR number to proceed.</p>
+}
+else
+{
+    <p>Please enter your CPR number to register.</p>
 }
 
 <div class="form-group">
@@ -29,12 +42,22 @@
     private string? _userName;
     private string CprNumber { get; set; } = string.Empty;
     private string? Message { get; set; }
+    private bool HasCprNumber { get; set; } = false;
+    private string? StoredHashedCpr { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _userName = user.Identity?.Name;
+
+        // Check if the user already has a CPR number in the database
+        var existingCpr = await TodoContext.Cprs.FirstOrDefaultAsync(c => c.User == _userName);
+        if (existingCpr != null)
+        {
+            HasCprNumber = true;
+            StoredHashedCpr = existingCpr.CprNr;
+        }
     }
 
     private async Task SubmitCprNumber()
@@ -47,23 +70,38 @@
 
         try
         {
-            // Hash the CPR number using BCrypt
             Codes.HashingHandler hashingHandler = new();
-            string hashedCpr = hashingHandler.BCryptHashing(CprNumber);
 
-            // Save the hashed CPR number to the database
-            var cprEntry = new TodoCprEntry
+            if (HasCprNumber)
+            {
+                // Verify the entered CPR number matches the stored hashed CPR number
+                if (hashingHandler.BCryptVerifyHashing2(CprNumber, StoredHashedCpr))
                 {
-                    UserName = _userName,
-                    HashedCpr = hashedCpr,
-                    CreatedAt = DateTime.UtcNow
-                };
+                    Message = "CPR number confirmed successfully!";
+                }
+                else
+                {
+                    Message = "The entered CPR number does not match our records.";
+                    Console.WriteLine($"Stored Hash: {StoredHashedCpr}");
+                }
+            }
+            else
+            {
+                // Hash the CPR number and save it to the database
+                string hashedCpr = hashingHandler.BCryptHashing2(CprNumber);
 
-            TodoContext.Add(cprEntry);
-            await TodoContext.SaveChangesAsync();
+                var cpr = new Cpr
+                    {
+                        User = _userName,
+                        CprNr = hashedCpr,
+                    };
 
-            Message = "CPR number saved successfully!";
-            CprNumber = string.Empty; // Clear the input field
+                TodoContext.Add(cpr);
+                await TodoContext.SaveChangesAsync();
+
+                Message = "CPR number saved successfully!";
+                CprNumber = string.Empty; // Clear the input field
+            }
         }
         catch (Exception ex)
         {
@@ -71,12 +109,4 @@
         }
     }
 
-    // Model for the CPR entry
-    public class TodoCprEntry
-    {
-        public int Id { get; set; }
-        public string? UserName { get; set; }
-        public string HashedCpr { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-    }
 }
